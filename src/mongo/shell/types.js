@@ -61,7 +61,7 @@ ISODate = function(isoDateStr){
     var res = isoDateRegex.exec(isoDateStr);
 
     if (!res)
-        throw "invalid ISO date";
+        throw new Error("invalid ISO date");
 
     var year = parseInt(res[1],10) || 1970; // this should always be present
     var month = (parseInt(res[2],10) || 1) - 1;
@@ -451,7 +451,7 @@ Map.hash = function(val){
         return s;
     }
 
-    throw "can't hash : " + typeof(val);
+    throw new Error("can't hash : " + typeof(val));
 }
 
 Map.prototype.put = function(key, value){
@@ -566,7 +566,7 @@ tojson = function(x, indent, nolint){
     case "function":
         return x.toString();
     default:
-        throw "tojson can't handle type " + (typeof x);
+        throw new Error("tojson can't handle type " + (typeof x));
     }
 
 }

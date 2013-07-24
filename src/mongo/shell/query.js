@@ -72,7 +72,7 @@ DBQuery.prototype._ensureSpecial = function(){
 
 DBQuery.prototype._checkModify = function(){
     if ( this._cursor )
-        throw "query already executed";
+        throw new Error("query already executed");
 }
 
 DBQuery.prototype._exec = function(){
@@ -124,11 +124,11 @@ DBQuery.prototype.next = function(){
     if ( o )
         this._cursorSeen++;
     else
-        throw "error hasNext: " + o;
+        throw errorWithObjDesc("error hasNext", o);
     
     var ret = this._cursor.next();
     if ( ret.$err )
-        throw "error: " + tojson( ret );
+        throw errorWithObj(ret);
 
     this._numReturned++;
     return ret;
@@ -139,7 +139,7 @@ DBQuery.prototype.objsLeftInBatch = function(){
 
     var ret = this._cursor.objsLeftInBatch();
     if ( ret.$err )
-        throw "error: " + tojson( ret );
+        throw errorWithObj(ret);
 
     return ret;
 }
@@ -180,7 +180,7 @@ DBQuery.prototype.count = function( applySkipLimit ){
     
     var res = this._db.runCommand( cmd );
     if( res && res.n != null ) return res.n;
-    throw "count failed: " + tojson( res );
+    throw errorWithObjDesc("count failed", res);
 }
 
 DBQuery.prototype.size = function(){
@@ -394,7 +394,7 @@ DBCommandCursor.prototype.next = function() {
     else {
         var ret = this._cursor.next();
         if ( ret.$err )
-            throw "error: " + tojson( ret );
+            throw errorWithObjDesc("error", ret);
         return ret;
     }
 }

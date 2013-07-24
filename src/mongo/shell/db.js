@@ -40,7 +40,7 @@ DB.prototype.commandHelp = function( name ){
     c.help = true;
     var res = this.runCommand( c );
     if ( ! res.ok )
-        throw res.errmsg;
+        throw new Error(res.errmsg);
     return res.help;
 }
 
@@ -90,7 +90,7 @@ DB.prototype._createUserV1 = function(userObj, replicatedTo, timeout) {
             print( "Creating user seems to have succeeded but threw an exception because we no " +
                    "longer have auth." );
         } else {
-            throw "Could not insert into system.users: " + tojson(e);
+            throw errorWithObjDesc("Could not insert into system.users", e);
         }
     } finally {
         if (userObj.pwd != null)
@@ -135,15 +135,15 @@ DB.prototype._createUserV1 = function(userObj, replicatedTo, timeout) {
     }
 
     if (le.err == "timeout") {
-        throw "timed out while waiting for user authentication to replicate - " +
-              "database will not be fully secured until replication finishes"
+        throw new Error("timed out while waiting for user authentication to replicate - " +
+              "database will not be fully secured until replication finishes");
     }
 
     if (le.err.startsWith("E11000 duplicate key error")) {
-        throw "User already exists with that username/userSource combination";
+        throw new Error("User already exists with that username/userSource combination");
     }
 
-    throw "couldn't add user: " + le.err;
+    throw new Error("couldn't add user: " + le.err);
 }
 
 DB.prototype._createUser = function(userObj, replicatedTo, timeout) {
@@ -170,11 +170,11 @@ DB.prototype._createUser = function(userObj, replicatedTo, timeout) {
     }
 
     if (res.errmsg == "timeout") {
-        throw "timed out while waiting for user authentication to replicate - " +
-              "database will not be fully secured until replication finishes"
+        throw new Error("timed out while waiting for user authentication to replicate - " +
+              "database will not be fully secured until replication finishes");
     }
 
-    throw "couldn't add user: " + res.errmsg;
+    throw new Error("couldn't add user: " + res.errmsg);
 }
 
 function _hashPassword(username, password) {
@@ -184,7 +184,7 @@ function _hashPassword(username, password) {
 // For adding old-style user documents for backwards compatibily with pre-2.4 versions of MongoDB.
 DB.prototype._addUserV0 = function( username , pass, readOnly, replicatedTo, timeout ) {
     if ( pass == null || pass.length == 0 )
-        throw "password can't be empty";
+        throw new Error("password can't be empty");
 
     readOnly = readOnly || false;
     var c = this.getCollection( "system.users" );
@@ -196,7 +196,7 @@ DB.prototype._addUserV0 = function( username , pass, readOnly, replicatedTo, tim
 DB.prototype._addUser = function(userObj, replicatedTo, timeout) {
     // To prevent creating old-style privilege documents
     if (userObj['roles'] == null) {
-        throw Error("'roles' field must be provided");
+        throw new Error("'roles' field must be provided");
     }
 
     this._createUser(userObj, replicatedTo, timeout);
@@ -204,7 +204,7 @@ DB.prototype._addUser = function(userObj, replicatedTo, timeout) {
 
 DB.prototype.addUser = function() {
     if (arguments.length == 0) {
-        throw Error("No arguments provided to addUser");
+        throw new Error("No arguments provided to addUser");
     }
     if (typeof arguments[0] == "object") {
         this._addUser.apply(this, arguments);
@@ -229,7 +229,7 @@ DB.prototype._updateUserV1 = function(updateObject) {
                            {$set : setObj});
     var err = db.getLastError();
     if (err) {
-        throw Error("Updating user failed: " + err);
+        throw new Error("Updating user failed: " + err);
     }
 };
 
@@ -251,7 +251,7 @@ DB.prototype.updateUser = function(updateObject) {
         return;
     }
 
-    throw Error("Updating user failed: " + res.errmsg);
+    throw new Error("Updating user failed: " + res.errmsg);
 };
 
 DB.prototype.changeUserPassword = function(username, password) {
@@ -280,11 +280,11 @@ DB.prototype._authOrThrow = function () {
     }
     else if (arguments.length == 1) {
         if (typeof(arguments[0]) != "object")
-            throw Error("Single-argument form of auth expects a parameter object");
+            throw new Error("Single-argument form of auth expects a parameter object");
         params = arguments[0];
     }
     else {
-        throw Error(
+        throw new Error(
             "auth expects either (username, password) or ({ user: username, pwd: password })");
     }
 
@@ -292,7 +292,7 @@ DB.prototype._authOrThrow = function () {
         params.mechanism = this._defaultAuthenticationMechanism;
 
     if (params.userSource !== undefined) {
-        throw Error("Do not override userSource field on db.auth().  " +
+        throw new Error("Do not override userSource field on db.auth().  " +
                     "Use getMongo().auth(), instead.");
     }
 
@@ -371,7 +371,7 @@ DB.prototype.getProfilingLevel  = function() {
 DB.prototype.getProfilingStatus  = function() {
     var res = this._dbCommand( { profile: -1 } );
     if ( ! res.ok )
-        throw "profile command failed: " + tojson( res );
+        throw errorWithObjDesc("profile command failed", res);
     delete res.ok
     return res;
 }
@@ -384,7 +384,7 @@ DB.prototype.getProfilingStatus  = function() {
  */
 DB.prototype.dropDatabase = function() {
     if ( arguments.length )
-        throw "dropDatabase doesn't take arguments";
+        throw new Error("dropDatabase doesn't take arguments");
     return this._dbCommand( { dropDatabase: 1 } );
 }
 
@@ -410,8 +410,8 @@ DB.prototype.shutdownServer = function(opts) {
     try {
         var res = this.runCommand(cmd);
         if( res )
-            throw "shutdownServer failed: " + res.errmsg;
-        throw "shutdownServer failed";
+            throw new Error("shutdownServer failed: " + res.errmsg);
+        throw new Error("shutdownServer failed");
     }
     catch ( e ){
         assert( tojson( e ).indexOf( "error doing query: failed" ) >= 0 , "unexpected error: " + tojson( e ) );
@@ -642,7 +642,7 @@ DB.prototype.eval = function(jsfunction) {
     var res = this._dbCommand( cmd );
     
     if (!res.ok)
-        throw tojson( res );
+        throw errorWithObj(res);
     
     return res.retval;
 }
@@ -726,7 +726,7 @@ DB.prototype.groupeval = function(parmsObj) {
 DB.prototype.groupcmd = function( parmsObj ){
     var ret = this.runCommand( { "group" : this._groupFixParms( parmsObj ) } );
     if ( ! ret.ok ){
-        throw "group command failed: " + tojson( ret );
+        throw errorWithObjDesc("group command failed", ret);
     }
     return ret.retval;
 }
@@ -760,7 +760,7 @@ DB.prototype.forceError = function(){
 DB.prototype.getLastError = function( w , wtimeout ){
     var res = this.getLastErrorObj( w , wtimeout );
     if ( ! res.ok )
-        throw "getlasterror failed: " + tojson( res );
+        throw errorWithObjDesc("getlasterror failed", res);
     return res.err;
 }
 DB.prototype.getLastErrorObj = function( w , wtimeout ){
@@ -773,7 +773,7 @@ DB.prototype.getLastErrorObj = function( w , wtimeout ){
     var res = this.runCommand( cmd );
 
     if ( ! res.ok )
-        throw "getlasterror failed: " + tojson( res );
+        throw errorWithObjDesc("getlasterror failed", res );
     return res;
 }
 DB.prototype.getLastErrorCmd = DB.prototype.getLastErrorObj;
@@ -832,7 +832,7 @@ DB.prototype.currentOP = DB.prototype.currentOp;
 
 DB.prototype.killOp = function(op) {
     if( !op ) 
-        throw "no opNum to kill specified";
+        throw new Error("no opNum to kill specified");
     return this.$cmd.sys.killop.findOne({'op':op});
 }
 DB.prototype.killOP = DB.prototype.killOp;

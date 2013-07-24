@@ -123,17 +123,17 @@ DBCollection.prototype._massageObject = function( q ){
         return { $where : q };
     }
 
-    throw "don't know how to massage : " + type;
+    throw new Error("don't know how to massage : " + type);
 
 }
 
 
 DBCollection.prototype._validateObject = function( o ){
     if (typeof(o) != "object")
-        throw "attempted to save a " + typeof(o) + " value.  document expected.";
+        throw new Error("attempted to save a " + typeof(o) + " value.  document expected.");
 
     if ( o._ensureSpecial && o._checkModify )
-        throw "can't save a DBQuery object";
+        throw new Error("can't save a DBQuery object");
 }
 
 DBCollection._allowedFields = { $id : 1 , $ref : 1 , $db : 1 };
@@ -142,11 +142,11 @@ DBCollection.prototype._validateForStorage = function( o ){
     this._validateObject( o );
     for ( var k in o ){
         if ( k.indexOf( "." ) >= 0 ) {
-            throw "can't have . in field names [" + k + "]" ;
+            throw new Error("can't have . in field names [" + k + "]");
         }
 
         if ( k.indexOf( "$" ) == 0 && ! DBCollection._allowedFields[k] ) {
-            throw "field names cannot start with $ [" + k + "]";
+            throw new Error("field names cannot start with $ [" + k + "]");
         }
 
         if ( o[k] !== null && typeof( o[k] ) === "object" ) {
@@ -176,15 +176,15 @@ DBCollection.prototype.findOne = function( query , fields, options ){
     if ( ! cursor.hasNext() )
         return null;
     var ret = cursor.next();
-    if ( cursor.hasNext() ) throw "findOne has more than 1 result!";
+    if ( cursor.hasNext() ) throw new Error("findOne has more than 1 result!");
     if ( ret.$err )
-        throw "error " + tojson( ret );
+        throw errorWithObjDesc("error ", ret);
     return ret;
 }
 
 DBCollection.prototype.insert = function( obj , options, _allow_dot ){
     if ( ! obj )
-        throw "no object passed to insert!";
+        throw new Error("no object passed to insert!");
     if ( ! _allow_dot ) {
         this._validateForStorage( obj );
     }
@@ -208,7 +208,7 @@ DBCollection.prototype.insert = function( obj , options, _allow_dot ){
 DBCollection.prototype.remove = function( t , justOne ){
     for ( var k in t ){
         if ( k == "_id" && typeof( t[k] ) == "undefined" ){
-            throw "can't have _id set to undefined in a remove expression"
+            throw new Error("can't have _id set to undefined in a remove expression");
         }
     }
     var startTime = (typeof(_verboseShell) === 'undefined' ||
@@ -249,10 +249,10 @@ DBCollection.prototype.update = function( query , obj , upsert , multi ){
 
 DBCollection.prototype.save = function( obj ){
     if ( obj == null || typeof( obj ) == "undefined" ) 
-        throw "can't save a null";
+        throw new Error("can't save a null");
 
     if ( typeof( obj ) == "number" || typeof( obj) == "string" )
-        throw "can't save a number or string"
+        throw new Error("can't save a number or string");
 
     if ( typeof( obj._id ) == "undefined" ){
         obj._id = new ObjectId();
@@ -310,7 +310,7 @@ DBCollection.prototype._indexSpec = function( keys, options ) {
         }
     }
     else {
-        throw "can't handle: " + typeof( options );
+        throw new Error("can't handle: " + typeof( options ));
     }
     /*
         return ret;
@@ -364,7 +364,7 @@ DBCollection.prototype.reIndex = function() {
 
 DBCollection.prototype.dropIndexes = function(){
     if ( arguments.length )
-        throw "dropIndexes doesn't take arguments";
+        throw new Error("dropIndexes doesn't take arguments");
 
     var res = this._db.runCommand( { deleteIndexes: this.getName(), index: "*" } );
     assert( res , "no result from dropIndex result" );
@@ -374,18 +374,18 @@ DBCollection.prototype.dropIndexes = function(){
     if ( res.errmsg.match( /not found/ ) )
         return res;
 
-    throw "error dropping indexes : " + tojson( res );
+    throw errorWithObjDesc("error dropping indexes", res);
 }
 
 
 DBCollection.prototype.drop = function(){
     if ( arguments.length > 0 )
-        throw "drop takes no argument";
+        throw new Error("drop takes no argument");
     var ret = this._db.runCommand( { drop: this.getName() } );
     if ( ! ret.ok ){
         if ( ret.errmsg == "ns not found" )
             return false;
-        throw "drop failed: " + tojson( ret );
+        throw errorWithObjDesc("drop failed: ", ret);
     }
     return true;
 }
@@ -401,7 +401,7 @@ DBCollection.prototype.findAndModify = function(args){
         if (ret.errmsg == "No matching object found"){
             return null;
         }
-        throw "findAndModifyFailed failed: " + tojson( ret );
+        throw errorWithObjDesc("findAndModifyFailed failed", ret);
     }
     return ret.value;
 }
@@ -858,7 +858,7 @@ DBCollection.prototype.totalSize = function(){
 
 DBCollection.prototype.convertToCapped = function( bytes ){
     if ( ! bytes )
-        throw "have to specify # of bytes";
+        throw new Error("have to specify # of bytes");
     return this._dbCommand( { convertToCapped : this._shortName , size : bytes } )
 }
 
@@ -874,14 +874,14 @@ DBCollection.prototype.isCapped = function(){
 DBCollection.prototype._distinct = function( keyString , query ){
     return this._dbCommand( { distinct : this._shortName , key : keyString , query : query || {} } );
     if ( ! res.ok )
-        throw "distinct failed: " + tojson( res );
+        throw errorWithObjDesc("distinct failed" + res);
     return res.values;
 }
 
 DBCollection.prototype.distinct = function( keyString , query ){
     var res = this._distinct( keyString , query );
     if ( ! res.ok )
-        throw "distinct failed: " + tojson( res );
+        throw errorWithObjDesc("distinct failed", res);
     return res.values;
 }
 
@@ -924,8 +924,7 @@ DBCollection.prototype.aggregate = function( ops ) {
 
     var res = this.runCommand("aggregate", {pipeline: arr});
     if (!res.ok) {
-        printStackTrace();
-        throw "aggregate failed: " + tojson(res);
+        throw errorWithObjDesc("aggregate failed", res);
     }
 
     if (TestData) {
@@ -1010,7 +1009,7 @@ DBCollection.prototype.mapReduce = function( map , reduce , optionsOrOutString )
     var raw = this._db.runCommand( c );
     if ( ! raw.ok ){
         __mrerror__ = raw;
-        throw "map reduce failed:" + tojson(raw);
+        throw errorWithObjDesc("map reduce failed", raw);
     }
     return new MapReduceResult( this._db , raw );
 

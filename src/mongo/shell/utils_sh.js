@@ -3,7 +3,7 @@ sh = function() { return "try sh.help();" }
 sh._checkMongos = function() {
     var x = db.runCommand( "ismaster" );
     if ( x.msg != "isdbgrid" )
-        throw "not connected to a mongos"
+        throw new Error("not connected to a mongos");
 }
 
 sh._checkFullName = function( fullName ) {
@@ -319,13 +319,13 @@ sh._lastMigration = function( ns ){
 sh._checkLastError = function( mydb ) {
     var err = mydb.getLastError();
     if ( err )
-        throw "error: " + err;
+        throw new Error("error: " + err);
 }
 
 sh.addShardTag = function( shard, tag ) {
     var config = db.getSisterDB( "config" );
     if ( config.shards.findOne( { _id : shard } ) == null ) {
-        throw "can't find a shard with name: " + shard;
+        throw new Error("can't find a shard with name: " + shard);
     }
     config.shards.update( { _id : shard } , { $addToSet : { tags : tag } } );
     sh._checkLastError( config );
@@ -334,7 +334,7 @@ sh.addShardTag = function( shard, tag ) {
 sh.removeShardTag = function( shard, tag ) {
     var config = db.getSisterDB( "config" );
     if ( config.shards.findOne( { _id : shard } ) == null ) {
-        throw "can't find a shard with name: " + shard;
+        throw new Error("can't find a shard with name: " + shard);
     }
     config.shards.update( { _id : shard } , { $pull : { tags : tag } } );
     sh._checkLastError( config );

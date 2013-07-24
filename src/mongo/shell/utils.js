@@ -40,6 +40,18 @@ printStackTrace = function(){
     }
 }
 
+errorWithObj = function(obj) {
+    var err = new Error(tojson(obj));
+    err.obj = obj;
+    return err;
+}
+
+errorWithObjDesc = function(desc, obj) {
+    var err = new Error(desc);
+    err.obj = obj;
+    return err;
+}
+
 /**
  * <p> Set the shell verbosity. If verbose the shell will display more information about command results. </>
  * <p> Default is off. <p>
@@ -654,7 +666,7 @@ shellHelper = function( command , rest , shouldPrint ){
     var args = rest.trim().replace(/\s*;$/,"").split( "\s+" );
     
     if ( ! shellHelper[command] )
-        throw "no command [" + command + "]";
+        throw new Error("no command [" + command + "]");
     
     var res = shellHelper[command].apply( null , args );
     if ( shouldPrint ){
@@ -858,7 +870,7 @@ shellHelper.show = function (what) {
         }
     }
 
-    throw "don't know how to show [" + what + "]";
+    throw new Error("don't know how to show [" + what + "]");
 
 }
 

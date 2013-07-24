@@ -287,7 +287,7 @@ ShardingTest = function( testName , numShards , verboseLevel , numMongos , other
     this._configNames = []
     
     if ( otherParams.sync && ! otherParams.separateConfig && numShards < 3 )
-        throw "if you want sync, you need at least 3 servers";
+        throw new Error("if you want sync, you need at least 3 servers");
     
     for ( var i = 0; i < ( otherParams.sync ? 3 : 1 ) ; i++ ) {
         
@@ -335,7 +335,7 @@ ShardingTest = function( testName , numShards , verboseLevel , numMongos , other
 
     if ( numMongos == 0 && !otherParams.noChunkSize ) {
         if ( keyFile ) {
-            throw "Cannot set chunk size without any mongos when using auth";
+            throw new Error("Cannot set chunk size without any mongos when using auth");
         } else {
             this._configConnection.getDB( "config" ).settings.insert(
                 { _id : "chunksize" , value : otherParams.chunksize || otherParams.chunkSize || 50 } );
@@ -411,7 +411,7 @@ ShardingTest.prototype.getRSEntry = function( setName ){
     for ( var i=0; i<this._rs.length; i++ )
         if ( this._rs[i].setName == setName )
             return this._rs[i];
-    throw "can't find rs: " + setName;
+    throw new Error("can't find rs: " + setName);
 }
 
 ShardingTest.prototype.getConfigIndex = function( config ){
@@ -435,7 +435,7 @@ ShardingTest.prototype.getServerName = function( dbname ){
     if ( x )
         return x.primary;
     this.config.databases.find().forEach( printjson );
-    throw "couldn't find dbname: " + dbname + " total: " + this.config.databases.count();
+    throw new Error("couldn't find dbname: " + dbname + " total: " + this.config.databases.count());
 }
 
 
@@ -443,7 +443,7 @@ ShardingTest.prototype.getNonPrimaries = function( dbname ){
     var x = this.config.databases.findOne( { _id : dbname } );
     if ( ! x ){
         this.config.databases.find().forEach( printjson );
-        throw "couldn't find dbname: " + dbname + " total: " + this.config.databases.count();
+        throw new Error("couldn't find dbname: " + dbname + " total: " + this.config.databases.count());
     }
     
     return this.config.shards.find( { _id : { $ne : x.primary } } ).map( function(z){ return z._id; } )
@@ -476,7 +476,7 @@ ShardingTest.prototype.getServer = function( dbname ){
             return c;
     }
     
-    throw "can't find server for: " + dbname + " name:" + name;
+    throw new Error("can't find server for: " + dbname + " name:" + name);
 
 }
 
@@ -489,7 +489,7 @@ ShardingTest.prototype.normalize = function( x ){
 
 ShardingTest.prototype.getOther = function( one ){
     if ( this._connections.length < 2 )
-        throw "getOther only works with 2 servers";
+        throw new Error("getOther only works with 2 servers");
 
     if ( one._mongo )
         one = one._mongo
@@ -503,7 +503,7 @@ ShardingTest.prototype.getOther = function( one ){
 
 ShardingTest.prototype.getAnother = function( one ){
     if(this._connections.length < 2)
-    	throw "getAnother() only works with multiple servers";
+    	throw new Error("getAnother() only works with multiple servers");
 	
 	if ( one._mongo )
         one = one._mongo
@@ -519,7 +519,7 @@ ShardingTest.prototype.getFirstOther = function( one ){
         if ( this._connections[i] != one )
         return this._connections[i];
     }
-    throw "impossible";
+    throw new Error("impossible");
 }
 
 ShardingTest.prototype.stop = function(){
@@ -555,7 +555,7 @@ ShardingTest.prototype.adminCommand = function(cmd){
     if ( res && res.ok == 1 )
         return true;
 
-    throw "command " + tojson( cmd ) + " failed: " + tojson( res );
+    throw errorWithObjDesc("command " + tojson( cmd ) + " failed", res);
 }
 
 ShardingTest.prototype._rangeToString = function(r){

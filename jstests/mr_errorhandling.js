@@ -35,11 +35,12 @@ try {
     res = t.mapReduce( m_bad , r , "mr_errorhandling_out" );
 }
 catch ( e ){
-    theerror = e.toString();
+    theerror = e
 }
 assert.isnull( res , "B1" );
 assert( theerror , "B2" );
-assert( theerror.indexOf( "emit" ) >= 0 , "B3" );
+assert( theerror.obj , "B3")
+assert( theerror.obj.errmsg.indexOf( "emit" ) >= 0 , "B4" );
 
 // test things are still in an ok state
 res = t.mapReduce( m_good , r , "mr_errorhandling_out" );

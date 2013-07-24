@@ -8,17 +8,17 @@ if ( typeof Mongo == "undefined" ){
 }
 
 if ( ! Mongo.prototype ){
-    throw "Mongo.prototype not defined";
+    throw new Error("Mongo.prototype not defined");
 }
 
 if ( ! Mongo.prototype.find )
-    Mongo.prototype.find = function( ns , query , fields , limit , skip , batchSize , options ){ throw "find not implemented"; }
+    Mongo.prototype.find = function( ns , query , fields , limit , skip , batchSize , options ){ throw new Error("find not implemented"); }
 if ( ! Mongo.prototype.insert )
-    Mongo.prototype.insert = function( ns , obj ){ throw "insert not implemented"; }
+    Mongo.prototype.insert = function( ns , obj ){ throw new Error("insert not implemented"); }
 if ( ! Mongo.prototype.remove )
-    Mongo.prototype.remove = function( ns , pattern ){ throw "remove not implemented;" }
+    Mongo.prototype.remove = function( ns , pattern ){ throw new Error("remove not implemented"); }
 if ( ! Mongo.prototype.update )
-    Mongo.prototype.update = function( ns , query , obj , upsert ){ throw "update not implemented;" }
+    Mongo.prototype.update = function( ns , query , obj , upsert ){ throw new Error("update not implemented"); }
 
 if ( typeof mongoInject == "function" ){
     mongoInject( Mongo.prototype );
@@ -43,7 +43,7 @@ Mongo.prototype.getDB = function( name ){
 Mongo.prototype.getDBs = function(){
     var res = this.getDB( "admin" ).runCommand( { "listDatabases" : 1 } );
     if ( ! res.ok )
-        throw "listDatabases failed:" + tojson( res );
+        throw errorWithObjDesc("listDatabases failed", res );
     return res;
 }
 
@@ -66,7 +66,7 @@ Mongo.prototype.getDBNames = function(){
 Mongo.prototype.getCollection = function(ns){
     var idx = ns.indexOf( "." );
     if ( idx < 0 ) 
-        throw "need . in ns";
+        throw new Error("need . in ns");
     var db = ns.substring( 0 , idx );
     var c = ns.substring( idx + 1 );
     return this.getDB( db ).getCollection( c );
@@ -100,7 +100,7 @@ Mongo.prototype.getReadPrefTagSet = function () {
 
 connect = function(url, user, pass) {
     if (user && !pass)
-        throw Error("you specified a user and not a password.  " +
+        throw new Error("you specified a user and not a password.  " +
                     "either you need a password, or you're using the old connect api");
 
     // Validate connection string "url" as "hostName:portNumber/databaseName"
@@ -110,33 +110,33 @@ connect = function(url, user, pass) {
     //
     var urlType = typeof url;
     if (urlType == "undefined") {
-        throw Error("Missing connection string");
+        throw new Error("Missing connection string");
     }
     if (urlType != "string") {
-        throw Error("Incorrect type \"" + urlType +
+        throw new Error("Incorrect type \"" + urlType +
                     "\" for connection string \"" + tojson(url) + "\"");
     }
     url = url.trim();
     if (0 == url.length) {
-        throw Error("Empty connection string");
+        throw new Error("Empty connection string");
     }
     var colon = url.lastIndexOf(":");
     var slash = url.lastIndexOf("/");
     if (0 == colon || 0 == slash) {
-        throw Error("Missing host name in connection string \"" + url + "\"");
+        throw new Error("Missing host name in connection string \"" + url + "\"");
     }
     if (colon == slash - 1 || colon == url.length - 1) {
-        throw Error("Missing port number in connection string \"" + url + "\"");
+        throw new Error("Missing port number in connection string \"" + url + "\"");
     }
     if (colon != -1 && colon < slash) {
         var portNumber = url.substring(colon + 1, slash);
         if (portNumber.length > 5 || !/^\d*$/.test(portNumber) || parseInt(portNumber) > 65535) {
-            throw Error("Invalid port number \"" + portNumber +
+            throw new Error("Invalid port number \"" + portNumber +
                         "\" in connection string \"" + url + "\"");
         }
     }
     if (slash == url.length - 1) {
-        throw Error("Missing database name in connection string \"" + url + "\"");
+        throw new Error("Missing database name in connection string \"" + url + "\"");
     }
 
     chatty("connecting to: " + url)
@@ -148,7 +148,7 @@ connect = function(url, user, pass) {
 
     if (user && pass) {
         if (!db.auth(user, pass)) {
-            throw Error("couldn't login");
+            throw new Error("couldn't login");
         }
     }
     return db;
