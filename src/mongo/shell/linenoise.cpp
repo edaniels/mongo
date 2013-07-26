@@ -139,7 +139,7 @@ struct linenoiseCompletions {
     vector<Utf32String> completionStrings;
 };
 
-#define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100
+#define LINENOISE_DEFAULT_HISTORY_MAX_LEN 1000
 #define LINENOISE_MAX_LINE 4096
 
 // make control-characters more readable
@@ -458,7 +458,7 @@ static KillRing killRing;
 
 static int rawmode = 0; /* for atexit() function to check if restore is needed*/
 static int atexit_registered = 0; /* register atexit just 1 time */
-static int historyMaxLen = LINENOISE_DEFAULT_HISTORY_MAX_LEN;
+static int historyMaxLen = LINENOISE_DEFAULT_HISTORY_MAX_LEN + 1;
 static int historyLen = 0;
 static int historyIndex = 0;
 static UChar8** history = NULL;
@@ -2562,6 +2562,10 @@ void linenoiseAddCompletion( linenoiseCompletions* lc, const char* str ) {
     lc->completionStrings.push_back( Utf32String( reinterpret_cast<const UChar8*>( str ) ) );
 }
 
+void linenoiseHistoryInit( int historyMaxLength ) {
+    historyMaxLen = historyMaxLength + 1;
+}
+
 int linenoiseHistoryAdd( const char* line ) {
     if ( historyMaxLen == 0 ) {
         return 0;
@@ -2612,7 +2616,7 @@ int linenoiseHistorySetMaxLen( int len ) {
         if ( len < tocopy ) {
             tocopy = len;
         }
-        memcpy( newHistory, history + historyMaxLen - tocopy, sizeof( UChar8* ) * tocopy );
+        memcpy( newHistory, history, sizeof( UChar8* ) * tocopy );
         free( history );
         history = newHistory;
     }

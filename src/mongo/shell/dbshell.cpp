@@ -104,6 +104,15 @@ void completionHook( const char* text , linenoiseCompletions* lc ) {
 }
 
 void shellHistoryInit() {
+    static const char * newHistoryMaxLenStr = getenv( "MONGO_HISTORY_LINES" );
+
+    if ( newHistoryMaxLenStr ) {
+        long int newHistoryMaxLen = strtol( newHistoryMaxLenStr, NULL, 10 );
+
+        if ( errno != ERANGE && newHistoryMaxLen >= 0 && newHistoryMaxLen <= INT_MAX )
+            linenoiseHistoryInit( static_cast<int>( newHistoryMaxLen ) );
+    }
+
     stringstream ss;
     const char * h = shell_utils::getUserDir();
     if ( h )

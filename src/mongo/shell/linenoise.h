@@ -44,6 +44,7 @@ void linenoiseAddCompletion( linenoiseCompletions * lc, const char * str );
 
 char *linenoise( const char* prompt );
 void linenoisePreloadBuffer( const char* preloadText );
+void linenoiseHistoryInit( int historyMaxLength );
 int linenoiseHistoryAdd( const char* line );
 int linenoiseHistorySetMaxLen( int len );
 int linenoiseHistorySave( const char* filename );
