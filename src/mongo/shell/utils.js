@@ -1157,15 +1157,57 @@ help = shellHelper.help = function (x) {
         return;
     }
     else if (x == "keys") {
-        print("Tab completion and command history is available at the command prompt.\n");
-        print("Some emacs keystrokes are available too:");
-        print("  Ctrl-A start of line");
-        print("  Ctrl-E end of line");
-        print("  Ctrl-K del to end of line");
+        print("Shell keystrokes:")
+        print("  Tab                     autocomplete");
+        print("  Ctrl-C                  exit shell");
+        print("  Ctrl-G                  abort");
+        print("  Ctrl-H (i.e. Backspace) backwards delete one character");
+        print("  Ctrl-I (i.e. Tab)       autocomplete");
+        print("  Ctrl-J                  new line");
+        print("  Ctrl-M                  carriage return");
+        print("  Ctrl-Z                  suspend (job control works in linux)");
+        print("\nHistory keystrokes:")
+        print("  Up-arrow                previous line in history");
+        print("  Down-arrow              next line in history");
+        print("  Ctrl-N                  next line in history");
+        print("  Ctrl-P                  previous line in history");
+        print("  Ctrl-R                  reverse search history");
+        print("  Ctrl-S                  forward search history");
+        print("  Meta-<                  beginning of history");
+        print("  Meta->                  end of history");
+        print("\nSome emacs keystrokes are available too:");
+        print("  Home                    beginning of line");
+        print("  End                     end of line");
+        print("  Left-arrow              backwards one character");
+        print("  Right-arrow             forwards one character");
+        print("  Ctrl-left-arrow         backwards one word");
+        print("  Ctrl-right-arrow        forwards one word");
+        print("  Ctrl-A                  beginning of line");
+        print("  Ctrl-B                  move backwards one character");
+        print("  Ctrl-D                  delete character (or exit shell)");
+        print("  Ctrl-E                  end of line");
+        print("  Ctrl-F                  move forwards one character");
+        print("  Ctrl-K                  forward cut line");
+        print("  Ctrl-L                  clear screen");
+        print("  Ctrl-T                  transpose two characters");
+        print("  Ctrl-U                  cut line");
+        print("  Ctrl-W                  cut word");
+        print("  Ctrl-Y                  paste (yank)");
+        print("  Meta-left-arrow         backwards one word");
+        print("  Meta-right-arrow        forwards one word");
+        print("  Meta-B                  move backwards one word");
+        print("  Meta-C                  capitalize word");
+        print("  Meta-D                  forward kill word");
+        print("  Meta-F                  move forwards one word");
+        print("  Meta-L                  lowercase word");
+        print("  Meta-U                  uppercase word");
+        print("  Meta-Y                  yank pop");
+        print("  Meta-[Backspace]        backward kill word");
         print("\nMulti-line commands");
         print("You can enter a multi line javascript expression.  If parens, braces, etc. are not closed, you will see a new line ");
         print("beginning with '...' characters.  Type the rest of your expression.  Press Ctrl-C to abort the data entry if you");
-        print("get stuck.\n");
+        print("get stuck.");
+        print("\nSee also http://docs.mongodb.org/manual/reference/mongo-shell/#keyboard-shortcuts");
     }
     else if (x == "misc") {
         print("\tb = new BinData(subtype,base64str)  create a BSON BinData value");
