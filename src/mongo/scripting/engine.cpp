@@ -243,6 +243,7 @@ namespace mongo {
     namespace JSFiles {
         extern const JSFile collection;
         extern const JSFile db;
+        extern const JSFile error_codes;
         extern const JSFile mongo;
         extern const JSFile mr;
         extern const JSFile query;
@@ -258,6 +259,7 @@ namespace mongo {
         execSetup(JSFiles::mr);
         execSetup(JSFiles::query);
         execSetup(JSFiles::collection);
+        execSetup(JSFiles::error_codes);
     }
 
     /** install BenchRunner suite */
