@@ -40,15 +40,9 @@ namespace mongo {
     }
 
     void LockStat::report( StringBuilder& builder ) const {
-        bool prefixPrinted = false;
         for ( int i=0; i < N; i++ ) {
             if ( timeLocked[i].load() == 0 )
                 continue;
-            
-            if ( ! prefixPrinted ) {
-                builder << "locks(micros)";
-                prefixPrinted = true;
-            }
 
             builder << ' ' << nameFor( i ) << ':' << timeLocked[i].load();
         }
@@ -79,12 +73,12 @@ namespace mongo {
         return 0;
     }
 
-    char LockStat::nameFor(unsigned offset) {
+    string LockStat::nameFor(unsigned offset) {
         switch ( offset ) {
-        case 0: return 'R';
-        case 1: return 'W';
-        case 2: return 'r';
-        case 3: return 'w';
+        case 0: return "Rlock";
+        case 1: return "Wlock";
+        case 2: return "rlock";
+        case 3: return "wlock";
         }
         fassertFailed(16339);
     }

@@ -99,7 +99,7 @@ namespace MMapTests {
             }
             if( t.millis() > 10000 ) {
                 mongo::unittest::log() << "warning: MMap LeakTest is unusually slow N:" << N <<
-                    ' ' << t.millis() << "ms" << endl;
+                    " duration:" << t.millis() << "ms" << endl;
             }
 
         }

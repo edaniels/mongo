@@ -143,7 +143,7 @@ namespace mongo {
                << " msg id: " << msgId
                << " op: " << op
                << " attempt: " << attempt
-               << " " << t.millis() << "ms"
+               << " duration:" << t.millis() << "ms"
                << endl;
 
         globalOpCounters.gotOp( op , iscmd );

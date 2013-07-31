@@ -96,7 +96,7 @@ namespace ThreadedTests {
             Timer t;
             cout << "MongoMutexTest N:" << N << endl;
             ThreadedTest<nthr>::run();
-            cout << "MongoMutexTest " << t.millis() << "ms" << endl;
+            cout << "MongoMutexTest duration:" << t.millis() << "ms" << endl;
         }
     private:
         virtual void setup() {

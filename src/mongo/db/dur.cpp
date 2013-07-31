@@ -526,7 +526,7 @@ namespace mongo {
                     if( i == e ) i = b;
                 }
             }
-            LOG(2) << "journal REMAPPRIVATEVIEW done startedAt: " << startedAt << " n:" << ntodo << ' ' << t.millis() << "ms" << endl;
+            LOG(2) << "journal REMAPPRIVATEVIEW done startedAt: " << startedAt << " n:" << ntodo << " duration:" << t.millis() << "ms" << endl;
         }
 
         /** We need to remap the private views periodically. otherwise they would become very large.
