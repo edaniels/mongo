@@ -686,7 +686,7 @@ namespace mongo {
                 _open();
                 int ms = t.millis();
                 if( ms >= 200 ) {
-                    log() << "DR101 latency warning on journal file open " << ms << "ms" << endl;
+                    log() << "DR101 latency warning on journal file open duration:" << ms << "ms" << endl;
                 }
             }
             catch(std::exception& e) {

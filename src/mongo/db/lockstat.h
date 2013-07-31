@@ -47,7 +47,7 @@ namespace mongo {
         AtomicInt64 timeLocked[N];
 
         static unsigned mapNo(char type);
-        static char nameFor(unsigned offset);
+        static string nameFor(unsigned offset);
     };
 
 }
