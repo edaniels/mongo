@@ -146,6 +146,14 @@ namespace mongo {
             if ( hasParam( "discover" ) ) {
                 _many = true;
             }
+
+            // check if sleep time is positive
+            if ( getParam( "sleep" , 1 ) < 1 )
+            {
+                cerr << "ERROR: " << "sleep time must be positive" << endl << endl;
+                printHelp(cerr);
+                ::_exit(EXIT_BADOPTIONS);
+            }
         }
 
         int run() {
