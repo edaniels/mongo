@@ -416,6 +416,11 @@ namespace mongo {
                 }
             }
 
+            // sleep for a second on this thread so that the newly added
+            // threads have a chance to actually get data
+            if ( found )
+                sleepsecs(1);
+
             return found;
         }
 
