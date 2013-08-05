@@ -873,8 +873,8 @@ if darwin or env["_HAVEPCAP"]:
 
 # --- shell ---
 
-env.Command(['shell/error_codes.js'], ['shell/generate_error_codes.py', 'base/error_codes.err'],
-            '$PYTHON $SOURCES $TARGETS')
+env.Command(['shell/error_codes.js'], ['base/generate_error_codes.py', 'base/error_codes.err'],
+            '$PYTHON ${SOURCES[0]} --js --error_codes=${SOURCES[1]} $TARGETS')
 
 # if you add a file here, you need to add it in scripting/engine.cpp and shell/createCPPfromJavaScriptFiles.js as well
 env.JSHeader("shell/mongo.cpp",

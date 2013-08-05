@@ -3,7 +3,7 @@
 Import("env")
 
 env.Command(['error_codes.h', 'error_codes.cpp'], ['generate_error_codes.py', 'error_codes.err'],
-            '$PYTHON $SOURCES $TARGETS')
+            '$PYTHON ${SOURCES[0]} --python --error_codes=${SOURCES[1]} $TARGETS')
 
 env.StaticLibrary('base', ['configuration_variable_manager.cpp',
                            'error_codes.cpp',

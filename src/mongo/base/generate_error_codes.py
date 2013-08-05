@@ -25,19 +25,46 @@ error_code("symbol2", code2)
 error_class("class1", ["symbol1", "symbol2, ..."])
 
 Usage:
-    python generate_error_codes.py <path to error_codes.err> <header file path> <source file path>
+    python generate_error_codes.py --python --error_codes=<path to error_codes.err> <header file path> <source file path>
+    python generate_error_codes.py --js --error_codes=<path to error_codes.err> <js file path>
 """
 
+import json
+from optparse import OptionParser
 import sys
 
 def main(argv):
-    if len(argv) != 4:
-        usage("Wrong number of arguments.")
+    parser = OptionParser()
+    parser.add_option("--python", action="store_true", help="generate python error codes")
+    parser.add_option("--js", action="store_true", help="generate js error codes")
+    parser.add_option("--error_codes", action="store", help="path to error_codes.err")
 
-    error_codes, error_classes = parse_error_definitions_from_file(argv[1])
+    (options, args) = parser.parse_args()
+
+    if not options.python and not options.js:
+        usage("Must specify a target language.")
+
+    if options.python and options.js:
+        usage("Must specify only one target language")
+
+    if not options.error_codes:
+        usage("Must specify error_codes.err")
+
+    error_codes, error_classes = parse_error_definitions_from_file(options.error_codes)
     check_for_conflicts(error_codes, error_classes)
-    generate_header(argv[2], error_codes, error_classes)
-    generate_source(argv[3], error_codes, error_classes)
+
+    if options.python:
+        if len(args) != 2:
+            usage("Wrong number of arguments.")
+
+        generate_header(args[0], error_codes, error_classes)
+        generate_source(args[1], error_codes, error_classes)
+
+    if options.js:
+        if len(args) != 1:
+            usage("Wrong number of arguments.")
+
+        generate_js(args[0], error_codes)
 
 def die(message=None):
     sys.stderr.write(message or "Fatal error\n")
@@ -138,6 +165,12 @@ def generate_source(filename, error_codes, error_classes):
 def generate_error_class_predicate_definition(class_name, code_names):
     cases = '\n        '.join('case %s:' % c for c in code_names)
     return error_class_predicate_template % dict(class_name=class_name, cases=cases)
+
+def generate_js(filename, error_codes):
+    error_codes_dict = dict(error_codes)
+    error_code_to_string_dict = {value: key for key, value in error_codes}
+    open(filename, 'wb').write('Mongo.ErrorCodes = ' + json.dumps(error_codes_dict)
+        + '\nMongo.ErrorCodeToString = ' + json.dumps(error_code_to_string_dict))
 
 header_template = '''// AUTO-GENERATED FILE DO NOT EDIT
 // See src/mongo/base/generate_error_codes.py
