@@ -232,16 +232,7 @@ Status UpdateDriver::update(StringData matchedField,
                             bool* docWasModified) {
     // TODO: assert that update() is called at most once in a !_multi case.
 
-    // Use the passed in FieldRefSet
-    FieldRefSet* targetFields = updatedFields;
-
-    // If we didn't get a FieldRefSet* from the caller, allocate storage and use
-    // the unique_ptr for lifecycle management
-    unique_ptr<FieldRefSet> targetFieldScopedPtr;
-    if (!targetFields) {
-        targetFieldScopedPtr.reset(new FieldRefSet());
-        targetFields = targetFieldScopedPtr.get();
-    }
+    FieldRefSet targetFields;
 
     _affectIndices = (isDocReplacement() && (_indexedFields != NULL));
 
@@ -279,7 +270,7 @@ Status UpdateDriver::update(StringData matchedField,
 
             // Record each field being updated but check for conflicts first
             const FieldRef* other;
-            if (!targetFields->insert(execInfo.fieldRef[i], &other)) {
+            if (!targetFields.insert(execInfo.fieldRef[i], &other)) {
                 return Status(ErrorCodes::ConflictingUpdateOperators,
                               str::stream() << "Cannot update '" << other->dottedField()
                                             << "' and '"
@@ -322,6 +313,13 @@ Status UpdateDriver::update(StringData matchedField,
 
     if (_logOp && logOpRec)
         *logOpRec = _logDoc.getObject();
+
+    if (updatedFields) {
+        // When updatedFields is passed in, populate it by copying the contents of targetFields.
+        for (FieldRefSet::iterator it = targetFields.begin(); it != targetFields.end(); ++it) {
+            updatedFields->insert(new FieldRef((*it)->dottedField(0)));
+        }
+    }
 
     return Status::OK();
 }
