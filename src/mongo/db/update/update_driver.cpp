@@ -314,10 +314,10 @@ Status UpdateDriver::update(StringData matchedField,
     if (_logOp && logOpRec)
         *logOpRec = _logDoc.getObject();
 
-    if (updatedFields) {
+    if (updatedFields != nullptr) {
         // When updatedFields is passed in, populate it by copying the contents of targetFields.
-        for (FieldRefSet::iterator it = targetFields.begin(); it != targetFields.end(); ++it) {
-            updatedFields->insert(new FieldRef((*it)->dottedField(0)));
+        for (const auto& it : targetFields) {
+            updatedFields->insert(new FieldRef(it->dottedField()));
         }
     }
 
