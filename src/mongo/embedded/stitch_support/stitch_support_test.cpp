@@ -235,7 +235,8 @@ protected:
         ASSERT(updateResult);
         ON_BLOCK_EXIT([updateResult] { stitch_support_v1_bson_free(updateResult); });
 
-        return std::string(fromBSONForAPI(updateResult));
+        this->updateResult = mongo::BSONObj(static_cast<const char*>(static_cast<const void*>(updateResult))).getOwned();
+        return std::string(mongo::tojson(this->updateResult));
     }
 
     auto checkUpdateStatus(const char* expr,
@@ -349,6 +350,7 @@ protected:
     stitch_support_v1_status* status = nullptr;
     stitch_support_v1_lib* lib = nullptr;
     stitch_support_v1_update_details* updateDetails = nullptr;
+    mongo::BSONObj updateResult;
 };
 
 TEST_F(StitchSupportTest, InitializationIsSuccessful) {
@@ -475,6 +477,26 @@ TEST_F(StitchSupportTest, TestReplacementStyleUpdateReportsNoModifiedPaths) {
 
 TEST_F(StitchSupportTest, TestReplacementStyleUpdatePreservesId) {
     ASSERT_EQ("{ \"_id\" : 123, \"b\" : 789 }", checkUpdate("{b: 789}", "{_id: 123, a: 456}"));
+}
+
+TEST_F(StitchSupportTest, TestReplacementZeroTimestamp) {
+    checkUpdate("{b: Timestamp(0, 0)}", "{_id: 123, a: 456}");
+    auto elemB = updateResult["b"];
+    ASSERT_TRUE(elemB.ok());
+    ASSERT_EQUALS(elemB.type(), mongo::BSONType::bsonTimestamp);
+    auto ts = elemB.timestamp();
+    ASSERT_NOT_EQUALS(0U, ts.getSecs());
+    ASSERT_NOT_EQUALS(0U, ts.getInc());
+}
+
+TEST_F(StitchSupportTest, TestUpdateCurrentDateTimestamp) {
+    checkUpdate("{$currentDate: {b: {$type: 'timestamp'}}}", "{_id: 123, a: 456}");
+    auto elemB = updateResult["b"];
+    ASSERT_TRUE(elemB.ok());
+    ASSERT_EQUALS(elemB.type(), mongo::BSONType::bsonTimestamp);
+    auto ts = elemB.timestamp();
+    ASSERT_NOT_EQUALS(0U, ts.getSecs());
+    ASSERT_NOT_EQUALS(0U, ts.getInc());
 }
 
 TEST_F(StitchSupportTest, TestUpdateArrayElement) {
